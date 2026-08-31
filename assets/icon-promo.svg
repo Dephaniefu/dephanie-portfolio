@@ -1,0 +1,9 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="cuxiao 1">
+<path id="Line 6 (Stroke)" d="M31.1602 14.25H7.8594C7.46644 14.2501 7.14 14.5534 7.11136 14.9453L5.5 37H3L4.61819 14.7637C4.74205 13.065 6.15623 11.7501 7.8594 11.75H31.1602C32.8503 11.7502 34.2581 13.0462 34.3985 14.7305L36.5 37H33.5L31.9073 14.9375C31.8748 14.549 31.55 14.2502 31.1602 14.25Z" fill="white"/>
+<path id="Line 7" d="M12 18V11C12 6.85786 15.3579 3.5 19.5 3.5C23.6421 3.5 27 6.85786 27 11V18" stroke="white" stroke-width="2.5"/>
+<circle id="Ellipse 16" cx="13.5" cy="26" r="2.75" stroke="white" stroke-width="2.5"/>
+<circle id="Ellipse 17" cx="25.5" cy="32" r="2.75" stroke="white" stroke-width="2.5"/>
+<path id="Subtract" d="M24.6963 22.1924L16.4834 37H13.624L22.5098 20.9795L24.6963 22.1924Z" fill="white"/>
+</g>
+</svg>

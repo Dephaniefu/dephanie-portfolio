@@ -1,0 +1,71 @@
+.border-glow-card {
+  --edge-proximity:0;
+  --cursor-angle:45deg;
+  --edge-sensitivity:26;
+  --color-sensitivity:46;
+  --glow-padding:24px;
+  --cone-spread:25;
+  isolation:isolate;
+  overflow:visible;
+}
+
+.border-glow-card::before,
+.border-glow-card::after,
+.border-glow-card>.edge-light {
+  border-radius:inherit;
+  content:"";
+  inset:0;
+  opacity:calc((var(--edge-proximity) - var(--color-sensitivity)) / (100 - var(--color-sensitivity)));
+  pointer-events:none;
+  position:absolute;
+  transition:opacity .25s ease-out;
+}
+
+.border-glow-card::before {
+  background:conic-gradient(from var(--cursor-angle),#c084fc,#f472b6 17%,transparent 34% 66%,#38bdf8 83%,#c084fc);
+  padding:2px;
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;
+  mask-composite:exclude;
+  z-index:3;
+}
+
+.border-glow-card::after {
+  background:
+    radial-gradient(circle at 18% 20%,rgba(192,132,252,.34),transparent 44%),
+    radial-gradient(circle at 82% 78%,rgba(56,189,248,.26),transparent 42%),
+    radial-gradient(circle at 60% 25%,rgba(244,114,182,.22),transparent 38%);
+  mix-blend-mode:soft-light;
+  opacity:calc(.48 * (var(--edge-proximity) - var(--color-sensitivity)) / (100 - var(--color-sensitivity)));
+  z-index:1;
+}
+
+.border-glow-card>.edge-light {
+  inset:calc(var(--glow-padding) * -1);
+  mask-image:conic-gradient(from var(--cursor-angle) at center,#000 2.5%,transparent 10%,transparent 90%,#000 97.5%);
+  mix-blend-mode:plus-lighter;
+  opacity:calc((var(--edge-proximity) - var(--edge-sensitivity)) / (100 - var(--edge-sensitivity)));
+  z-index:1;
+}
+
+.border-glow-card>.edge-light::before {
+  border-radius:inherit;
+  box-shadow:
+    inset 0 0 0 1px rgba(220,195,255,.95),
+    inset 0 0 12px rgba(192,132,252,.48),
+    0 0 8px rgba(192,132,252,.58),
+    0 0 22px rgba(244,114,182,.32),
+    0 0 42px rgba(56,189,248,.2);
+  content:"";
+  inset:var(--glow-padding);
+  position:absolute;
+}
+
+.border-glow-card>:not(.edge-light) { position:relative; z-index:2; }
+.border-glow-card:not(:hover):not(.sweep-active)::before,
+.border-glow-card:not(:hover):not(.sweep-active)::after,
+.border-glow-card:not(:hover):not(.sweep-active)>.edge-light { opacity:0; transition:opacity .7s ease-in-out; }
+
+@media (prefers-reduced-motion:reduce) {
+  .border-glow-card::before,.border-glow-card::after,.border-glow-card>.edge-light { display:none; }
+}
