@@ -64,15 +64,21 @@ const projectSection = document.querySelector('.projects');
 const projectRail = document.querySelector('.project-grid');
 if (projectSection && projectRail && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
   let hasAutoScrolled = false;
+  let cancelAutoScroll = false;
+  const stopAutoScroll = () => { cancelAutoScroll = true; };
+  projectRail.addEventListener('pointerdown', stopAutoScroll, { passive:true });
+  projectRail.addEventListener('touchstart', stopAutoScroll, { passive:true });
+  projectRail.addEventListener('wheel', stopAutoScroll, { passive:true });
   const projectObserver = new IntersectionObserver(entries => {
     const entry = entries[0];
     if (!entry.isIntersecting || hasAutoScrolled) return;
     hasAutoScrolled = true;
     const start = projectRail.scrollLeft;
-    const maxDistance = Math.min(320, projectRail.scrollWidth - projectRail.clientWidth);
-    const duration = 1400;
+    const maxDistance = Math.min(220, projectRail.scrollWidth - projectRail.clientWidth);
+    const duration = 720;
     let startTime;
     const glide = time => {
+      if (cancelAutoScroll) return;
       startTime ??= time;
       const progress = Math.min((time - startTime) / duration, 1);
       const eased = 1 - Math.pow(1 - progress, 4);

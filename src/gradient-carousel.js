@@ -31,8 +31,18 @@ if (carouselRail && carouselSection) {
   let animationFrame = 0;
   let dragStartX = 0;
   let dragStartScroll = 0;
+  let dragLastScroll = 0;
+  let dragLastTime = 0;
+  let dragVelocity = 0;
   let isDragging = false;
   let isPositioned = false;
+  let wheelEndTimer = 0;
+  let resizeFrame = 0;
+  let cardCenters = [];
+  let cardWidths = [];
+  let cycleStart = 0;
+  let cycleEnd = 0;
+  let cycleWidth = 0;
 
   originalCards.forEach((card, index) => {
     card.tabIndex = 0;
@@ -42,6 +52,29 @@ if (carouselRail && carouselSection) {
 
   const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
   const logicalIndex = physicalIndex => ((physicalIndex - middleStartIndex) % originalCount + originalCount) % originalCount;
+
+  // Card geometry only changes on resize. Cache it so scrolling never mixes
+  // layout reads with transform writes on every animation frame.
+  const measureCarousel = () => {
+    cardCenters = carouselCards.map(card => card.offsetLeft + card.offsetWidth / 2);
+    cardWidths = carouselCards.map(card => card.offsetWidth);
+    cycleStart = carouselCards[middleStartIndex]?.offsetLeft || 0;
+    cycleEnd = carouselCards[middleEndIndex]?.offsetLeft || 0;
+    cycleWidth = cycleEnd - cycleStart;
+  };
+
+  const closestCardIndex = targetCenter => {
+    let closestIndex = middleStartIndex;
+    let closestDistance = Number.POSITIVE_INFINITY;
+    cardCenters.forEach((center, index) => {
+      const distance = Math.abs(center - targetCenter);
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closestIndex = index;
+      }
+    });
+    return closestIndex;
+  };
 
   const averageColor = (data, startX, endX, width, height) => {
     let red = 0;
@@ -80,34 +113,36 @@ if (carouselRail && carouselSection) {
   };
 
   const centerCard = (index, behavior = 'smooth') => {
-    const card = carouselCards[index];
-    if (!card) return;
-    const left = card.offsetLeft - (carouselRail.clientWidth - card.offsetWidth) / 2;
+    if (!carouselCards[index] || cardCenters[index] == null) return;
+    const left = cardCenters[index] - carouselRail.clientWidth / 2;
     carouselRail.scrollTo({ left, behavior });
   };
 
   const normalizeInfinitePosition = () => {
-    if (!isPositioned || !originalCount) return;
-    const cycleStart = carouselCards[middleStartIndex].offsetLeft;
-    const cycleEnd = carouselCards[middleEndIndex].offsetLeft;
-    const cycleWidth = cycleEnd - cycleStart;
+    if (!isPositioned || !originalCount || !cycleWidth) return;
     const center = carouselRail.scrollLeft + carouselRail.clientWidth / 2;
     const boundaryStart = cycleStart - 14;
     const boundaryEnd = cycleEnd - 14;
-    if (center < boundaryStart) carouselRail.scrollLeft += cycleWidth;
-    else if (center >= boundaryEnd) carouselRail.scrollLeft -= cycleWidth;
+    let shift = 0;
+    if (center < boundaryStart) shift = cycleWidth;
+    else if (center >= boundaryEnd) shift = -cycleWidth;
+    if (!shift) return;
+    carouselRail.scrollLeft += shift;
+    if (isDragging) {
+      dragStartScroll += shift;
+      dragLastScroll += shift;
+    }
   };
 
   const updateCarousel = () => {
     animationFrame = 0;
     normalizeInfinitePosition();
     const center = carouselRail.scrollLeft + carouselRail.clientWidth / 2;
-    let closestIndex = middleStartIndex;
-    let closestDistance = Number.POSITIVE_INFINITY;
+    const closestIndex = closestCardIndex(center);
 
     carouselCards.forEach((card, index) => {
-      const cardWidth = card.offsetWidth;
-      const distance = card.offsetLeft + cardWidth / 2 - center;
+      const cardWidth = cardWidths[index] || 1;
+      const distance = cardCenters[index] - center;
       const normalized = clamp(distance / (cardWidth + 28), -1.65, 1.65);
       const magnitude = Math.abs(normalized);
       const rotation = normalized * -18;
@@ -116,10 +151,6 @@ if (carouselRail && carouselSection) {
       card.style.transform = reduceCarouselMotion ? 'none' : `translateZ(${depth}px) rotateY(${rotation}deg) scale(${scale})`;
       card.style.opacity = reduceCarouselMotion ? '1' : String(1 - Math.min(magnitude * .14, .26));
       card.style.zIndex = String(20 - Math.round(magnitude * 10));
-      if (Math.abs(distance) < closestDistance) {
-        closestDistance = Math.abs(distance);
-        closestIndex = index;
-      }
     });
 
     if (closestIndex !== activeIndex) {
@@ -137,14 +168,28 @@ if (carouselRail && carouselSection) {
 
   carouselRail.addEventListener('scroll', requestCarouselUpdate, { passive:true });
   window.addEventListener('resize', () => {
-    centerCard(middleStartIndex + logicalIndex(activeIndex), 'auto');
-    requestCarouselUpdate();
+    if (resizeFrame) return;
+    resizeFrame = requestAnimationFrame(() => {
+      resizeFrame = 0;
+      measureCarousel();
+      centerCard(middleStartIndex + logicalIndex(activeIndex), 'auto');
+      requestCarouselUpdate();
+    });
   }, { passive:true });
 
   carouselRail.addEventListener('wheel', event => {
-    const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
+    if (event.ctrlKey) return;
+    const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? carouselRail.clientWidth : 1;
+    const delta = (Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY) * unit;
+    if (!delta) return;
     event.preventDefault();
-    carouselRail.scrollLeft += delta * .8;
+    carouselRail.scrollLeft += delta;
+    window.clearTimeout(wheelEndTimer);
+    wheelEndTimer = window.setTimeout(() => {
+      normalizeInfinitePosition();
+      const center = carouselRail.scrollLeft + carouselRail.clientWidth / 2;
+      centerCard(closestCardIndex(center));
+    }, 130);
   }, { passive:false });
 
   carouselRail.addEventListener('pointerdown', event => {
@@ -152,13 +197,22 @@ if (carouselRail && carouselSection) {
     isDragging = true;
     dragStartX = event.clientX;
     dragStartScroll = carouselRail.scrollLeft;
+    dragLastScroll = dragStartScroll;
+    dragLastTime = event.timeStamp;
+    dragVelocity = 0;
     carouselRail.classList.add('is-dragging');
     carouselRail.setPointerCapture(event.pointerId);
   });
 
   carouselRail.addEventListener('pointermove', event => {
     if (!isDragging) return;
-    carouselRail.scrollLeft = dragStartScroll - (event.clientX - dragStartX);
+    const nextScroll = dragStartScroll - (event.clientX - dragStartX);
+    const elapsed = Math.max(event.timeStamp - dragLastTime, 1);
+    const instantVelocity = (nextScroll - dragLastScroll) / elapsed;
+    dragVelocity = dragVelocity * .65 + instantVelocity * .35;
+    dragLastScroll = nextScroll;
+    dragLastTime = event.timeStamp;
+    carouselRail.scrollLeft = nextScroll;
   });
 
   const stopDragging = event => {
@@ -166,7 +220,9 @@ if (carouselRail && carouselSection) {
     isDragging = false;
     carouselRail.classList.remove('is-dragging');
     if (carouselRail.hasPointerCapture(event.pointerId)) carouselRail.releasePointerCapture(event.pointerId);
-    centerCard(activeIndex);
+    normalizeInfinitePosition();
+    const projectedCenter = carouselRail.scrollLeft + carouselRail.clientWidth / 2 + dragVelocity * 170;
+    centerCard(closestCardIndex(projectedCenter));
   };
 
   carouselRail.addEventListener('pointerup', stopDragging);
@@ -189,6 +245,7 @@ if (carouselRail && carouselSection) {
   });
 
   requestAnimationFrame(() => {
+    measureCarousel();
     isPositioned = true;
     centerCard(middleStartIndex, 'auto');
     updateCarousel();
