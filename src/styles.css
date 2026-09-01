@@ -95,8 +95,9 @@ button { font:inherit; }
 .project-grid::-webkit-scrollbar { height:8px; }
 .project-grid::-webkit-scrollbar-track { background:rgba(255,255,255,.12); border-radius:999px; }
 .project-grid::-webkit-scrollbar-thumb { background:#b792f5; border-radius:999px; }
-.project-card { aspect-ratio:650/505; backface-visibility:hidden; background:#fff; border-radius:26px; color:#060411; contain:layout paint style; display:grid; grid-template-rows:76% 24%; overflow:hidden; scroll-snap-align:center; transform-origin:center; transform-style:preserve-3d; transition:filter .28s ease,opacity .18s linear; }
+.project-card { aspect-ratio:650/505; backface-visibility:hidden; background:#fff; border-radius:26px; color:#060411; contain:layout paint style; cursor:pointer; display:grid; grid-template-rows:76% 24%; overflow:hidden; scroll-snap-align:center; transform-origin:center; transform-style:preserve-3d; transition:filter .28s ease,opacity .18s linear; }
 .project-card.is-active { filter:drop-shadow(0 28px 32px rgba(4,2,20,.3)); }
+.project-card:focus-visible { outline:3px solid #b792f5; outline-offset:5px; }
 .project-showcase { background:#ebf5f6; overflow:hidden; position:relative; }
 .project-showcase-image { background:#ebf5f6; }
 .project-cover-image { display:block; height:100%; object-fit:cover; width:100%; }

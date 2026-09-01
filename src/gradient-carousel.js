@@ -48,6 +48,8 @@ if (carouselRail && carouselSection) {
   let dragLastScroll = 0;
   let dragLastTime = 0;
   let dragVelocity = 0;
+  let dragDistance = 0;
+  let suppressCardClick = false;
   let isDragging = false;
   let isPositioned = false;
   let wheelEndTimer = 0;
@@ -60,8 +62,9 @@ if (carouselRail && carouselSection) {
 
   originalCards.forEach((card, index) => {
     card.tabIndex = 0;
-    card.setAttribute('role', 'group');
-    card.setAttribute('aria-label', `Project ${index + 1} of ${originalCount}`);
+    card.setAttribute('role', 'link');
+    const projectTitle = card.querySelector('h3')?.textContent?.trim() || `Project ${index + 1}`;
+    card.setAttribute('aria-label', `Open ${projectTitle}, project ${index + 1} of ${originalCount}`);
   });
 
   const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
@@ -223,12 +226,15 @@ if (carouselRail && carouselSection) {
     dragLastScroll = dragStartScroll;
     dragLastTime = event.timeStamp;
     dragVelocity = 0;
+    dragDistance = 0;
+    suppressCardClick = false;
     carouselRail.classList.add('is-dragging');
     carouselRail.setPointerCapture(event.pointerId);
   });
 
   carouselRail.addEventListener('pointermove', event => {
     if (!isDragging) return;
+    dragDistance = Math.max(dragDistance, Math.abs(event.clientX - dragStartX));
     const nextScroll = dragStartScroll - (event.clientX - dragStartX);
     const elapsed = Math.max(event.timeStamp - dragLastTime, 1);
     const instantVelocity = (nextScroll - dragLastScroll) / elapsed;
@@ -241,6 +247,10 @@ if (carouselRail && carouselSection) {
   const stopDragging = event => {
     if (!isDragging) return;
     isDragging = false;
+    if (dragDistance > 8) {
+      suppressCardClick = true;
+      window.setTimeout(() => { suppressCardClick = false; }, 0);
+    }
     carouselRail.classList.remove('is-dragging');
     if (carouselRail.hasPointerCapture(event.pointerId)) carouselRail.releasePointerCapture(event.pointerId);
     normalizeInfinitePosition();
@@ -266,7 +276,19 @@ if (carouselRail && carouselSection) {
 
   carouselCards.forEach((card, index) => {
     card.addEventListener('click', event => {
-      if (!event.target.closest('a')) centerCard(index);
+      if (suppressCardClick) {
+        event.preventDefault();
+        return;
+      }
+      if (event.target.closest('a')) return;
+      const projectUrl = card.querySelector('.project-meta a')?.href;
+      if (projectUrl) window.location.assign(projectUrl);
+    });
+    card.addEventListener('keydown', event => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      event.preventDefault();
+      const projectUrl = card.querySelector('.project-meta a')?.href;
+      if (projectUrl) window.location.assign(projectUrl);
     });
   });
 
