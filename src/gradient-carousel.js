@@ -10,6 +10,20 @@ if (carouselRail && carouselSection) {
   gradientLayer.setAttribute('aria-hidden', 'true');
   carouselSection.prepend(gradientLayer);
 
+  carouselRail.id ||= 'projects-carousel';
+  const makeNavigationButton = (direction, label, path) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.className = `project-carousel-button project-carousel-button--${direction}`;
+    button.setAttribute('aria-label', label);
+    button.setAttribute('aria-controls', carouselRail.id);
+    button.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${path}" /></svg>`;
+    carouselSection.append(button);
+    return button;
+  };
+  const previousButton = makeNavigationButton('previous', 'Show previous project', 'M15 5l-7 7 7 7');
+  const nextButton = makeNavigationButton('next', 'Show next project', 'M9 5l7 7-7 7');
+
   const makeClone = card => {
     const clone = card.cloneNode(true);
     clone.dataset.carouselClone = 'true';
@@ -116,6 +130,15 @@ if (carouselRail && carouselSection) {
     if (!carouselCards[index] || cardCenters[index] == null) return;
     const left = cardCenters[index] - carouselRail.clientWidth / 2;
     carouselRail.scrollTo({ left, behavior });
+  };
+
+  const moveOneCard = direction => {
+    if (!cardCenters.length) measureCarousel();
+    normalizeInfinitePosition();
+    const center = carouselRail.scrollLeft + carouselRail.clientWidth / 2;
+    const currentIndex = closestCardIndex(center);
+    const targetIndex = clamp(currentIndex + direction, 0, carouselCards.length - 1);
+    centerCard(targetIndex);
   };
 
   const normalizeInfinitePosition = () => {
@@ -230,13 +253,16 @@ if (carouselRail && carouselSection) {
   carouselRail.addEventListener('keydown', event => {
     if (event.key === 'ArrowRight') {
       event.preventDefault();
-      centerCard(activeIndex + 1);
+      moveOneCard(1);
     }
     if (event.key === 'ArrowLeft') {
       event.preventDefault();
-      centerCard(activeIndex - 1);
+      moveOneCard(-1);
     }
   });
+
+  previousButton.addEventListener('click', () => moveOneCard(-1));
+  nextButton.addEventListener('click', () => moveOneCard(1));
 
   carouselCards.forEach((card, index) => {
     card.addEventListener('click', event => {
