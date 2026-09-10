@@ -61,6 +61,8 @@ if (carouselRail && carouselSection) {
   let cycleWidth = 0;
 
   originalCards.forEach((card, index) => {
+    const projectLink = card.querySelector('.project-meta a');
+    if (!projectLink) return;
     card.tabIndex = 0;
     card.setAttribute('role', 'link');
     const projectTitle = card.querySelector('h3')?.textContent?.trim() || `Project ${index + 1}`;
