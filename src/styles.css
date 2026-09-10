@@ -96,7 +96,6 @@ button { font:inherit; }
 .project-grid::-webkit-scrollbar-track { background:rgba(255,255,255,.12); border-radius:999px; }
 .project-grid::-webkit-scrollbar-thumb { background:#b792f5; border-radius:999px; }
 .project-card { aspect-ratio:650/505; backface-visibility:hidden; background:#fff; border-radius:26px; color:#060411; contain:layout paint style; cursor:pointer; display:grid; grid-template-rows:76% 24%; overflow:hidden; scroll-snap-align:center; transform-origin:center; transform-style:preserve-3d; transition:filter .28s ease,opacity .18s linear; }
-.project-card--coming-soon { cursor:grab; }
 .project-card.is-active { filter:drop-shadow(0 28px 32px rgba(4,2,20,.3)); }
 .project-card:focus-visible { outline:3px solid #b792f5; outline-offset:5px; }
 .project-showcase { background:#ebf5f6; overflow:hidden; position:relative; }
@@ -119,7 +118,7 @@ button { font:inherit; }
 .project-meta { align-items:center; display:flex; justify-content:space-between; padding:0 18px; }
 .project-meta h3 { font-size:clamp(14px,1.1vw,24px); line-height:1.05; margin:0 0 5px; }
 .project-meta p { color:#060411; font-size:clamp(9px,.75vw,16px); line-height:1.1; margin:0; }
-.project-meta a,.project-meta-status { border:1px solid #060411; border-radius:99px; flex:0 0 auto; font-size:clamp(10px,.8vw,17px); font-weight:700; margin-left:10px; padding:8px 14px; }
+.project-meta a { border:1px solid #060411; border-radius:99px; flex:0 0 auto; font-size:clamp(10px,.8vw,17px); font-weight:700; margin-left:10px; padding:8px 14px; }
 
 .career { background:#19132d url('../assets/06-career.png') center/100% 100% no-repeat; height:1080px; min-height:1080px; overflow:hidden; padding:100px 0; }
 .career-shell { display:grid; grid-template-columns:minmax(340px,540px) 1fr; gap:7vw; align-items:start; position:relative; padding-top:170px; }
