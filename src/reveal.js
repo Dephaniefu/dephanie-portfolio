@@ -40,6 +40,12 @@ document.querySelectorAll('#career .timeline > .section-title').forEach(element 
   careerTargets.push(element);
 });
 
+const contactTargets = [];
+document.querySelectorAll('.contact-copy > h2').forEach(element => {
+  element.classList.add('contact-reveal');
+  contactTargets.push(element);
+});
+
 if ('IntersectionObserver' in window) {
   // A single observer services every reveal section. This avoids five separate
   // viewport callbacks while preserving the replay-on-reentry behaviour.
@@ -48,7 +54,8 @@ if ('IntersectionObserver' in window) {
     [document.querySelector('.skills'), skillTargets],
     [document.querySelector('#education'), educationTargets],
     [document.querySelector('#projects'), projectTitleTargets],
-    [document.querySelector('#career'), careerTargets]
+    [document.querySelector('#career'), careerTargets],
+    [document.querySelector('.contact'), contactTargets]
   ]);
   const revealObserver = new IntersectionObserver(entries => {
     entries.forEach(entry => {
@@ -57,7 +64,7 @@ if ('IntersectionObserver' in window) {
   }, { threshold:.14, rootMargin:'0px 0px -8% 0px' });
   revealGroups.forEach((_, section) => section && revealObserver.observe(section));
 } else {
-  [...aboutTargets, ...skillTargets, ...educationTargets, ...projectTitleTargets, ...careerTargets].forEach(element => element.classList.add('is-visible'));
+  [...aboutTargets, ...skillTargets, ...educationTargets, ...projectTitleTargets, ...careerTargets, ...contactTargets].forEach(element => element.classList.add('is-visible'));
 }
 
 const projectSection = document.querySelector('.projects');
